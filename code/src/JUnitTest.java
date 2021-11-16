@@ -2,5 +2,5 @@
  *
  */
 public class JUnitTest {
- Integer
+
 }
