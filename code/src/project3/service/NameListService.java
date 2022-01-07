@@ -8,7 +8,7 @@ import project3.domain.Employee;
 public class NameListService {
     private Employee[] employees;
     public NameListService(){
-        employees = new Employee[Data.EMPLOYEES.length];
+//        employees = new Employee[Data.EMPLOYEES.length];
         for(int i = 0; i < employees.length; i++){
 
         }
