@@ -381,7 +381,7 @@ public class FieldTest {
 
 
 
-> 获取运行时类的方法结构
+> ##### 获取运行时类的方法结构
 
 ```java
 public class MethodTest {
@@ -455,9 +455,218 @@ public class MethodTest {
 
 
 
+> ##### 获取运行时类的构造器结构
+
+```java
+/*
+ 获取构造器结构
+ */
+ @Test
+ public void test1(){
+
+     Class clazz = Person.class;
+     //getConstructors() : 获取当前运行时类中声明为public的构造器
+     Constructor[] constructors = clazz.getConstructors();
+     for(Constructor c : constructors){
+         System.out.println(c);
+     }
+     System.out.println();
+     //getDeclaredConstructors() : 获取当前运行时类中声明的所有的构造器
+     Constructor[] constructors1 =clazz.getDeclaredConstructors();
+
+ }
+```
+
+
+
+> ##### 获取运行时类的父类及父类泛型  
+
+```java
+/*
+获取运行时类的父类
+**/
+@Test
+public void test2(){
+    Class clazz = Person.class;
+    Class superclass = clazz.getSuperclass();
+    System.out.println(superclass);
+}
+
+/*
+获取运行时类的带泛型的父类
+**/
+@Test
+public void test3(){
+    Class clazz = Person.class;
+    Type superclass = clazz.getGenericSuperclass();
+    System.out.println(superclass);
+}
+
+/*
+获取运行时类的带泛型的父类的泛型
+**/
+@Test
+public void test4(){
+    Class clazz = Person.class;
+    Type superclass = clazz.getGenericSuperclass();
+    ParameterizedType parameterizedType = (ParameterizedType) superclass;
+    //获取泛型类型
+    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+    System.out.println(actualTypeArguments[0].getTypeName());
+    System.out.println(((Class)actualTypeArguments[0]).getTypeName());
+}
+```
+
+
+
+> ##### 获取运行时类的接口、所在包、注解等
+
+```java
+/*
+获取运行时类的接口
+**/
+@Test
+public void test5(){
+    Class clazz = Person.class;
+
+    Class[] interfaces = clazz.getInterfaces();
+    for(Class c : interfaces){
+        System.out.println(c);
+    }
+    //获取运行时类父类的接口
+    Class[] interfaces1 = clazz.getSuperclass().getInterfaces();
+    for (Class c : interfaces1){
+        System.out.println(c);
+    }
+}
+
+/*
+获取运行时类所在的包
+**/
+@Test
+public void test6(){
+    Class clazz = Person.class;
+    Package aPackage = clazz.getPackage();
+    System.out.println(aPackage);
+}
+
+/*
+获取运行时类的注解
+**/
+@Test
+public void test7(){
+    Class clazz = Person.class;
+    Annotation[] annotations = clazz.getAnnotations();
+    for (Annotation annos : annotations){
+        System.out.println(annos);
+    }
+}
+```
+
+
+
 
 
 ## 6. 调用运行时类的指定结构
+
+> ##### 调用运行时类的指定属性
+
+```java
+@Test
+public  void testField() throws NoSuchFieldException, IllegalAccessException, InstantiationException {
+    Class clazz = Person.class;
+
+    //创建运行时类的对象
+    Person p = (Person) clazz.newInstance();
+
+    //获取指定的属性 ： 要求运行时类的属性声明为public，不常用
+    Field id = clazz.getField("id");
+
+    //设置当前属性的值
+    /*
+    set():参数1 ：指明设置哪个对象的属性
+          参数2 ：将此属性设置为多少
+    **/
+    id.set(p, 1001);
+
+    /*
+    获取当前属性的值
+    get() : 参数1 获取哪个对象的当前属性值
+    **/
+    id.get(p);
+}
+
+@Test
+public void testField1() throws IllegalAccessException, InstantiationException, NoSuchFieldException {
+    Class clazz = Person.class;
+
+    //创建运行时类的对象
+    Person p = (Person) clazz.newInstance();
+
+    //getDeclaredField(String name): 获取运行时类中指定变量名的属性
+    Field name = clazz.getDeclaredField("name");
+
+    //保证当前属性是可访问的
+    name.setAccessible(true);
+    name.set(p, name);
+    System.out.println(name.get(p));
+}
+```
+
+
+
+> ##### 调用运行时类中的指定方法
+
+```java
+@Test
+public void testMethod() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+
+    Class clazz = Person.class;
+
+    //创建运行时类的对象
+    Person p = (Person)clazz.newInstance();
+
+    //获取指定的某个方法
+    //getDeclaredMethods() : 参数1 ：指明获取方法的名称 参数2 ：指明获取的方法的形参列表
+    Method shows = clazz.getDeclaredMethod("show", String.class);
+
+    shows.setAccessible(true);
+    //invoke(): 参数1 ：方法的调用者 参数2 ：给方法形参赋值的实参
+    //invoke()方法的返回值即为对应类中调用的方法的返回值
+    //如郭调用的运行时类的方法没有返回值，则invoke()返回null
+    Object returnValue = shows.invoke(p, "CHN");
+    System.out.println(returnValue);
+
+    System.out.println("*****如何调用静态方法****");
+    //同上
+    //showDesc.invoke(Person.clss);  也可写null
+}
+```
+
+
+
+> ##### 调用运行时类中的指定构造器
+
+```java
+@Test
+public void testConstructor() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    Class clazz = Person.class;
+
+    /**
+     * 1.获取指定的构造器
+     *  getDeclaredConstructor(): 参数 ：指明构造器的参数列表
+    **/
+
+    Constructor declaredConstructors = clazz.getDeclaredConstructor(String.class);
+
+    //2.保证此构造器是可访问的
+    declaredConstructors.setAccessible(true);
+
+    //3.调用此构造器创建运行时类的对象
+    Person o = (Person)declaredConstructors.newInstance("Tom");
+    System.out.println(o);
+}
+```
 
 
 
@@ -465,5 +674,212 @@ public class MethodTest {
 
 ## 7. 反射的应用 ：动态代理
 
+> ##### 代理设计模式的原理
+
+使用一个代理将对象包装起来，然后用该代理对象取代原始对象。任何对原始对象的调用都要通过代理。代理对象决定是否以及何时将方法当调用转到原始对象上
 
 
+
+> ##### 静态代理举例
+
+```java
+/*
+*@author  ZJH
+*@Date 13:39 2022/1/13
+*@Description : 静态代理举例
+*
+* 特点 ：代理类和被代理类在编译期间，就确定下来了
+**/
+
+interface ClothFactory {
+
+    void produceCloth();
+
+}
+
+//代理类
+class ProxyClothFactory implements ClothFactory{
+
+    private ClothFactory factory; //用被代理类对象进行实例化
+
+    public ProxyClothFactory(ClothFactory factory){
+        this.factory = factory;
+    }
+
+    @Override
+    public void produceCloth() {
+        System.out.println("代理工厂做一些准备工作");
+
+        factory.produceCloth();
+
+        System.out.println("代理工厂做一些后续的首尾工作");
+    }
+}
+
+//被代理类
+class NikeClothFactory implements ClothFactory{
+
+    @Override
+    public void produceCloth() {
+        System.out.println("Nike工厂生产一批运动服");
+    }
+}
+
+public class StaticProxyTest{
+    public static void main(String[] args) {
+        //创建被代理类的对象
+        NikeClothFactory nike = new NikeClothFactory();
+
+        //创建代理类的对象
+        ProxyClothFactory proxyClothFactory = new ProxyClothFactory(nike);
+
+        proxyClothFactory.produceCloth();
+    }
+}
+```
+
+![image-20220113135612915](images/image-20220113135612915.png)
+
+
+
+> ##### 动态代理举例
+
+```java
+package proxy;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+/**
+ * @Author: ZJH
+ * @Date: 2022/01/13/13:42
+ * @Description:
+ */
+
+interface Human{
+
+    String getBelief();
+
+    void eat(String food);
+
+}
+
+//被代理类
+class SuperMan implements Human{
+
+    @Override
+    public String getBelief() {
+        return "超人的信仰";
+    }
+
+    @Override
+    public void eat(String food) {
+        System.out.println("我喜欢吃" + food);
+    }
+}
+
+/*
+要想实现动态代理，需要解决的问题？
+问题一:如何根据加载到内存中的被代理类，动态创建一个代理类及其对象
+问题二:当通过代理类的对象调用方法时，如何动态的去调用被代理类中的同名方法
+*/
+
+class ProxyFactory{
+    //调用此方法返回一个代理类的对象，解决问题1
+    public static Object getProxyInstance(Object obj){ //obj ：被代理类的对象
+
+        MyInvocationHandler handler = new MyInvocationHandler();
+
+        handler.bind(obj);
+
+        return Proxy.newProxyInstance(obj.getClass().getClassLoader(), obj.getClass().getInterfaces(), handler);
+
+    }
+
+}
+
+class MyInvocationHandler implements InvocationHandler{
+
+    //需要使用被代理类的对象进行赋值
+    private Object obj;
+
+    public void bind(Object obj){
+        this.obj = obj;
+    }
+
+    //当通过代理类的对象，调用方法A时，就会自动的调用如下的方法 : invoke()
+    //将被代理类要执行的方法A的功能就声明在invoke()中
+    @Override
+    public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
+
+        //method : 即为代理类对象调用的方法，此方法也就作为了被代理类对象要调用的方法
+        //obj: 被代理类的对象
+        Object returnValue = method.invoke(obj, objects);
+        //代理对象调用方法的返回值
+        return returnValue;
+
+    }
+}
+
+public class ProxyTest {
+
+    public static void main(String[] args) {
+
+        SuperMan superMan = new SuperMan();
+        //proxyInstance : 代理类的对象
+        Human proxyInstance = (Human)ProxyFactory.getProxyInstance(superMan);
+        //当通过代理类对象调用方法时，会自动的调用被代理类中的同名方法
+        proxyInstance.getBelief();
+        proxyInstance.eat("煎蛋");
+
+        NikeClothFactory nikeClothFactory = new NikeClothFactory();
+        ClothFactory proxyInstance1 = (ClothFactory) ProxyFactory.getProxyInstance(nikeClothFactory);
+        proxyInstance1.produceCloth();
+
+    }
+
+}
+```
+
+![image-20220113141136126](images/image-20220113141136126.png)
+
+
+
+> ##### 动态代理与AOP(Aspect Orient Programming)
+
+![image-20220113141346389](images/image-20220113141346389.png)
+
+![image-20220113141445582](images/image-20220113141445582.png)
+
+![image-20220113141522015](images/image-20220113141522015.png)
+
+```java
+class HumanUtil{
+
+    public void method1(){
+        System.out.println("通用方法1");
+    }
+
+    public void method2(){
+        System.out.println("通用方法2");
+    }
+
+}
+
+//当通过代理类的对象，调用方法A时，就会自动的调用如下的方法 : invoke()
+//将被代理类要执行的方法A的功能就声明在invoke()中
+@Override
+public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
+
+    HumanUtil util = new HumanUtil();
+    util.method1();
+    //method : 即为代理类对象调用的方法，此方法也就作为了被代理类对象要调用的方法
+    //obj: 被代理类的对象
+    Object returnValue = method.invoke(obj, objects);
+    //代理对象调用方法的返回值
+    util.method2();
+    return returnValue;
+
+}
+```
